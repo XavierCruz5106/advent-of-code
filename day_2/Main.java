@@ -16,26 +16,25 @@ public class Main {
       String[] stringArray = line.split(" ");
       int[] intArray = Arrays.stream(stringArray).mapToInt(Integer::parseInt).toArray();
 
-      boolean isIncreasing = true;
-      boolean isDecreasing = true;
-      boolean isSafe = true;
+      if (isSafe(intArray)) {
+        safeReports++;
+        continue;
+      }
 
-      for (int i = 0; i < intArray.length - 1; i++) {
-        int diff = Math.abs(intArray[i] - intArray[i + 1]);
+      boolean isSafeWithOneRemoval = false;
+      for (int i = 0; i < intArray.length; i++) {
+        int[] modifiedArray = new int[intArray.length - 1];
+        // creating a new array without i
+        System.arraycopy(intArray, 0, modifiedArray, 0, i);
+        System.arraycopy(intArray, i + 1, modifiedArray, i, intArray.length - i - 1);
 
-        if (diff < 1 || diff > 3) {
-          isSafe = false;
+        if (isSafe(modifiedArray)) {
+          isSafeWithOneRemoval = true;
           break;
-        }
-
-        if (intArray[i] < intArray[i + 1]) {
-          isDecreasing = false;
-        } else if (intArray[i] > intArray[i + 1]) {
-          isIncreasing = false;
         }
       }
 
-      if (isSafe && (isIncreasing || isDecreasing)) {
+      if (isSafeWithOneRemoval) {
         safeReports++;
       }
     }
@@ -43,5 +42,26 @@ public class Main {
     System.out.println(safeReports);
 
     input.close();
+  }
+
+  public static boolean isSafe(int[] intArray){
+    boolean isIncreasing = true;
+    boolean isDecreasing = true;
+
+    for (int i = 0; i < intArray.length - 1; i++) {
+      int diff = Math.abs(intArray[i] - intArray[i + 1]);
+
+      if (diff < 1 || diff > 3) {
+        return false;
+      }
+
+      if (intArray[i] < intArray[i + 1]) {
+        isDecreasing = false;
+      } else if (intArray[i] > intArray[i + 1]) {
+        isIncreasing = false;
+      }
+    }
+
+    return isIncreasing || isDecreasing;
   }
 }
