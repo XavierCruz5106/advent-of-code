@@ -1,87 +1,82 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
-  public static void main(String[] args) throws FileNotFoundException {
-    try {
-      File inputFile = new File("input.txt");
-      Scanner scanner = new Scanner(inputFile);
+    public static void main(String[] args) {
+        try {
+            File file = new File("input.txt");
+            Scanner lineCounter = new Scanner(file);
 
-      ArrayList<Integer> leftList = new ArrayList<>();
-      ArrayList<Integer> rightList = new ArrayList<>();
+            // Count lines manually
+            int lineCount = 0;
+            while (lineCounter.hasNextLine()) {
+                lineCounter.nextLine();
+                lineCount++;
+            }
+            lineCounter.close();
 
+            // Create arrays with exact size
+            int[] leftArray = new int[lineCount];
+            int[] rightArray = new int[lineCount];
 
-      while (scanner.hasNextLine()) {
-          String line = scanner.nextLine().trim();
+            // Read file again
+            Scanner scanner = new Scanner(file);
+            int index = 0;
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine().trim();
+                if (!line.isEmpty()) {
+                    String[] numbers = line.split("\\s+");
+                    if (numbers.length == 2) {
+                        leftArray[index] = Integer.parseInt(numbers[0]);
+                        rightArray[index] = Integer.parseInt(numbers[1]);
+                        index++;
+                    }
+                }
+            }
+            scanner.close();
 
-          if (line.isEmpty()) continue;
-          String[] numbers = line.split("\\s+");
+            distances(leftArray, rightArray);
+            similarityScore(leftArray, rightArray);
 
-          if (numbers.length == 2) {
-              leftList.add(Integer.parseInt(numbers[0]));
-              rightList.add(Integer.parseInt(numbers[1]));
-          }
-      }
-
-      int[] leftArray = leftList.stream().mapToInt(Integer::intValue).toArray();
-      int[] rightArray = rightList.stream().mapToInt(Integer::intValue).toArray();
-      distances(leftArray, rightArray);
-      similarityScore(leftArray, rightArray);
-
-
-
-
-      scanner.close();
-
-  } catch (FileNotFoundException e) {
-      System.out.println("An error occurred while reading the file.");
-      e.printStackTrace();
-  }
-
-  }
-
-  public static void distances(int[] leftArray, int[] rightArray){
-    int[] sortedLeftList = Arrays.copyOf(leftArray, leftArray.length);
-    int[] sortedRightList = Arrays.copyOf(rightArray, rightArray.length);
-    Arrays.sort(sortedLeftList);
-    Arrays.sort(sortedRightList);
-
-    int totalDistance = 0;
-    for (int i = 0; i < sortedLeftList.length; i++) {
-        totalDistance += Math.abs(sortedLeftList[i] - sortedRightList[i]);
+        } catch (FileNotFoundException e) {
+            System.err.println("An error occurred while reading the file: " + e.getMessage());
+        }
     }
 
-    System.out.println("Total Distance: " + totalDistance);
-  }
+    public static void distances(int[] leftArray, int[] rightArray) {
+        // Sort arrays in-place to avoid creating copies
+        Arrays.sort(leftArray);
+        Arrays.sort(rightArray);
 
-  public static void similarityScore(int[] leftArray, int[] rightArray){
-    Map<Integer, Integer> numberFromIndex = new HashMap<>();
+        int totalDistance = 0;
+        for (int i = 0; i < leftArray.length; i++) {
+            totalDistance += Math.abs(leftArray[i] - rightArray[i]);
+        }
 
-
-    int occurances = 0;
-    for (int i = 0; i < rightArray.length; i++){
-
-      if (numberFromIndex.get(rightArray[i]) == null){
-        occurances++;
-      } else {
-        occurances = numberFromIndex.get(rightArray[i]) + 1;
-      }
-      numberFromIndex.put(rightArray[i], occurances);
-      occurances = 0;
+        System.out.println("Total Distance: " + totalDistance);
     }
 
-    int similarityScore = 0;
-    for (int i = 0; i < leftArray.length; i++){
-      if (numberFromIndex.get(leftArray[i]) != null) {
-        similarityScore += leftArray[i] * numberFromIndex.get(leftArray[i]);
-      }
-    }
+    public static void similarityScore(int[] leftArray, int[] rightArray) {
+        // Use a more efficient frequency counting approach
+        Map<Integer, Integer> frequencyMap = new HashMap<>();
 
-    System.out.println(similarityScore);
-  }
+        // Count frequencies in right array
+        for (int num : rightArray) {
+            frequencyMap.put(num, frequencyMap.getOrDefault(num, 0) + 1);
+        }
+
+        // Calculate similarity score
+        int similarityScore = 0;
+        for (int num : leftArray) {
+            if (frequencyMap.containsKey(num)) {
+                similarityScore += num * frequencyMap.get(num);
+            }
+        }
+
+        System.out.println("Similarity Score: " + similarityScore);
+    }
 }
